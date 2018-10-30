@@ -1,38 +1,32 @@
+
+// START HERE
 const path = require('path')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const devMode = process.env.NODE_ENV !== 'production'
+const webpack = require('webpack')
+const ringConfig = require('@jetbrains/ring-ui/webpack.config').config
 
 module.exports = {
-  mode: devMode ? 'development' : 'production',
-  entry: ['./scr/scripts/main.js', './src/styles/main.scss'],
-  output: {
-    path: path.resolve(__dirname, 'public'),
-    // Specify the base path for all the assets within your
-    // application. This is relative to the output path, so in
-    // our case it will be ./public/assets
-    publicPath: '/assets',
-    // The name of the output bundle. Path is also relative
-    // to the output path
-    filename: 'assets/scripts/bundle.js'
-  },
+
+  mode: 'development',
+
+  entry: './src/index.js',
   module: {
+
     rules: [
-      {
-        test: /\.(js)$/,
-        exclude: /node_modules/,
-        use: ['babel-loader']
+      ...ringConfig.module.rules, {
+        test: /\.(js|jsx)$/,
+        exclude: /(node_modules|bower_components)/,
+        loader: 'babel-loader',
+        options: {
+          presets: ['@babel/env']
+        }
       },
+
       {
         // Look for Sass files and process them according to the
         // rules specified in the different loaders
         test: /\.(sa|sc)ss$/,
 
         use: [{
-          // Extracts the CSS into a separate file and uses the
-          // defined configurations in the 'plugins' section
-          loader: MiniCssExtractPlugin.loader
-        },
-        {
           // Interprets CSS
           loader: 'css-loader',
           options: {
@@ -73,19 +67,25 @@ module.exports = {
             // the image to output.path
             emitFile: false
           }
-        }
-        ]
+        }]
       }
+
     ]
   },
-
-  plugins: [
-    // Configuration options for MiniCssExtractPlugin. Here I'm only
-    // indicating what the CSS outputted file name should be and
-    // the location
-    new MiniCssExtractPlugin({
-      filename: 'assets/styles/main.css'
-    })
-  ]
+  resolve: {
+    extensions: ['*', '.js', '.jsx']
+  },
+  output: {
+    path: path.resolve(__dirname, 'dist/'),
+    publicPath: '/dist/',
+    filename: 'bundle.js'
+  },
+  devServer: {
+    contentBase: path.join(__dirname, 'public/'),
+    port: 3000,
+    publicPath: 'http://localhost:3000/dist/',
+    hotOnly: true
+  },
+  plugins: [new webpack.HotModuleReplacementPlugin()]
 
 }
